@@ -41,6 +41,9 @@ class WP_Sendmail {
 		$table_name = $wpdb->prefix . $this->db;
 
 		$results = $wpdb->get_results("SELECT * FROM ". $table_name ." LIMIT ". ($page-1) * $num .",". $num );
+		$all = $wpdb->get_var( "SELECT COUNT(*) FROM ". $table_name );
+		$pages = ceil( $all / $num );
+		//
 
 		// load view
 		$view = dirname(__FILE__) . "/views/admin.php";
@@ -190,6 +193,17 @@ class WP_Sendmail {
 		);
 		// optional fields
 		if( array_key_exists('fullname', $_POST) ) $data['fullname'] = sanitize_text_field( $_POST["fullname"] );
+		// add fields with plugin prefix
+		foreach($_POST as $k => $v ){
+			// skip flag
+			if( $k == "wp-sendmail" ) continue;
+			if( strpos($k, "wp-sendmail") !== 0 ) continue;
+			$field = str_replace("wp-sendmail-", "", $k);
+			// skip existing keys
+			if( array_key_exists( $field, $data) ) continue;
+			// add key
+			$data[$field] = $v;
+		}
 
 		// send email
 		$this->send( $data );
@@ -207,12 +221,16 @@ class WP_Sendmail {
 		$headers[] = "MIME-Version: 1.0";
 		$headers[] = "Content-type: text/plain; charset=iso-8859-1";
 
-		// add sender at the end of message (with option?)
-		$data['message'] .= <<<EOD
-
-----------------------------------
-$from
-EOD;
+		// lookup in theme folder (for an override)
+		$view = get_template_directory() ."/views/sendmail-message.php";
+		if( !file_exists( $view ) ){
+			$view = plugin_dir_path( __FILE__ ) ."views/message.php"; // assume it exists?
+		}
+		// render message from view
+		ob_start();
+		extract($data, EXTR_SKIP);
+		include( $view );
+		$data['message'] =  ob_get_clean();
 
 		$submit = mail( $data['to'], $data['subject'], $data['message'], implode("\r\n", $headers) );
 
