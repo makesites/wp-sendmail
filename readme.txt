@@ -29,5 +29,9 @@ An answer to that question.
 2. screenshot-2
 
 == Changelog ==
-= Version 1.0 (29-07-2016) =
-*  Initial release.
+= Version 1.1.0 (05-08-2016) =
+* Admin section
+
+= Version 1.0.0 (29-07-2016) =
+* Initial release.
+
