@@ -7,10 +7,11 @@ Stable tag: 4.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Basic handling of email submissions
+Simple email forms submitted using sendmail
 
 == Description ==
 
+Simple email forms submitted using sendmail
 
 == Installation ==
 
@@ -29,9 +30,13 @@ An answer to that question.
 2. screenshot-2
 
 == Changelog ==
+
+= Version 1.2.0 (30-08-2016) =
+* Introducing views
+
 = Version 1.1.0 (05-08-2016) =
 * Admin section
 
 = Version 1.0.0 (29-07-2016) =
-* Initial release.
+* Initial release
 

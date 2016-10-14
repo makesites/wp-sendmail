@@ -4,7 +4,7 @@
 	Plugin Name: Sendmail
 	Plugin URI: http://makesites.org
 	Description: Basic handling of email submissions
-	Version: 1.1.0
+	Version: 1.2.0
 	Author: Makesites
 	Author URI: http://makesites.org
  */
@@ -14,7 +14,7 @@ $wp_sendmail = new WP_Sendmail();
 
 class WP_Sendmail {
 
-	protected $version = "1.1.0"; // pickup version from comments?
+	protected $version = "1.2.0"; // pickup version from comments?
 	protected $db = "sendmail_log";
 	protected $page = "sendmail-report";
 
