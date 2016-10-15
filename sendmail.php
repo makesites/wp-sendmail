@@ -177,23 +177,22 @@ class WP_Sendmail {
 		if( !isset($_SERVER['HTTP_REFERER'] )) return;
 		$referer = parse_url( $_SERVER['HTTP_REFERER'] );
 		if( $referer['host'] !== $_SERVER["HTTP_HOST"] ) return; // assume HTTP_HOST?
-		// - require recipient
-		if( array_key_exists('sendmail_recipient', $_SESSION) ) $to = $_SESSION['sendmail_recipient'];
-		if( array_key_exists('to', $_POST) ) $to = $_POST['to'];
-		if( !isset($to) ) return;
-		// - require main fields
-		if( empty($_POST["from"]) || empty($_POST["subject"]) || empty($_POST["message"]) ) return; // return $this->error('empty_fields');
-
-		// basic set - sanitize form values
-		$data = array(
-			'from' => sanitize_email( $_POST["from"] ),
-			'to' => sanitize_email( $to ),
-			'subject' => sanitize_text_field( $_POST["subject"] ),
-			'message' => esc_textarea( $_POST["message"] )
-		);
-		// optional fields
-		if( array_key_exists('fullname', $_POST) ) $data['fullname'] = sanitize_text_field( $_POST["fullname"] );
-		// add fields with plugin prefix
+		// variables
+		$data = array();
+		// - gather fields
+		// * fields from session vars
+		foreach($_SESSION as $k => $v ){
+			// skip flag
+			if( strpos($k, "sendmail_") !== 0 ) continue;
+			$field = str_replace("sendmail_", "", $k);
+			// special case (legacy name?)
+			if( $field == "recipient" ) $field = "to";
+			// add key
+			$data[$field] = $v;
+			// reset variable
+			unset( $_SESSION[$k] );
+		}
+		// * fields with plugin prefix
 		foreach($_POST as $k => $v ){
 			// skip flag
 			if( $k == "wp-sendmail" ) continue;
@@ -204,6 +203,27 @@ class WP_Sendmail {
 			// add key
 			$data[$field] = $v;
 		}
+		// * regular POST fields (selective...)
+		if( array_key_exists('from', $_POST) && !array_key_exists('from', $data) )
+			$data['from'] = $_POST['from'];
+		if( array_key_exists('to', $_POST) && !array_key_exists('to', $data) )
+			$data['to'] = $_POST['to'];
+		if( array_key_exists('subject', $_POST) && !array_key_exists('subject', $data) )
+			$data['subject'] = $_POST['subject'];
+		if( array_key_exists('message', $_POST) && !array_key_exists('message', $data) )
+			$data['message'] = $_POST['message'];
+
+		// - require main fields
+		if( empty($data["to"]) || empty($data["from"]) || empty($data["subject"]) || empty($data["message"]) ) return; // return $this->error('empty_fields');
+
+		// optional fields
+		if( array_key_exists('fullname', $_POST) ) $data['fullname'] = sanitize_text_field( $_POST["fullname"] );
+
+		// sanitize form values
+		$data['from'] = sanitize_email( $data['from'] );
+		$data['to'] = sanitize_email( $data['to'] );
+		$data["subject"] = sanitize_text_field( $data["subject"] );
+		$data["message"] = esc_textarea( $data["message"] );
 
 		// send email
 		$this->send( $data );
